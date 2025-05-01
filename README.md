@@ -1,2 +1,0 @@
-# Mooyu
-personal website
