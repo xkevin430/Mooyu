@@ -1,0 +1,13 @@
+{
+  "name": "mooyu-website",
+  "version": "1.0.0",
+  "description": "MooYu official website",
+  "main": "index.html",
+  "scripts": {
+    "start": "http-server -p 3000",
+    "download-images": "node download-images.js"
+  },
+  "dependencies": {
+    "http-server": "^14.1.1"
+  }
+} 
