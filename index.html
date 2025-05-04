@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MooYu - 墨鱼</title>
+    <!-- Favicon -->
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+    <link rel="mask-icon" href="images/safari-pinned-tab.svg" color="#000000">
+    <meta name="theme-color" content="#ffffff">
+    <!-- Styles -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,8 +30,9 @@
             <img src="images/iconWooFlow.png" alt="MooFlow" class="mooflow-icon">
             <div class="mooflow-title">项目里程碑管理<br><b>MooFlow</b></div>
         </div>
-        <div class="home-download-btn-wrapper">
-            <a href="#" id="home-download-link" class="home-download-btn" onclick="showPage('page-download')">Download Moo...</a>
+        <div class="home-download-btn-wrapper" style="flex-direction:column;align-items:center;">
+            <a href="#" id="home-download-link" class="home-download-btn" onclick="showPage('page-login')">登录</a>
+            <div style="font-size:10px;color:#888;margin-top:4px;text-align:center;width:100%;">登录后下载正式版</div>
         </div>
         <div class="home-footer">"让工作游刃有余，让生活自在有余。"</div>
     </div>
@@ -57,11 +66,11 @@
 
             <!-- 下载按钮区域 -->
             <div class="download-buttons">
-                <a href="download/MooFlow.dmg" class="app-download-btn" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <a href="download/MooFlow.dmg" class="app-download-btn" id="DownloadWFApple" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
                     <span>Download</span>
                     <img src="images/apple-logo2.png" alt="Apple Store" style="height: 25px;">
                 </a>
-                <a href="download/MooFlow_free.dmg" class="app-download-btn" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <a href="download/MooFlow_free.dmg" class="app-download-btn" id="DownloadWFFree" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
                     <span>Download</span>
                     <img src="images/free.png" alt="Free Version" style="height: 25px;">
                 </a>
@@ -192,11 +201,11 @@
                 <div class="app-card center">
                     <img src="images/iconWooFlow.png" alt="MooFlow" class="app-icon" id="goto-mooflow-from-download">
                     <div class="app-title">项目里程碑管理<br>MooFlow</div>
-                    <a href="download/MooFlow.dmg" class="app-download-btn" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <a href="download/MooFlow.dmg" class="app-download-btn" id="DownloadWFApple" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
                         <span>Download</span>
                         <img src="images/apple-logo2.png" alt="Apple Store" style="height: 25px;">
                     </a>
-                    <a href="download/MooFlow_free.dmg" class="app-download-btn" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <a href="download/MooFlow_free.dmg" class="app-download-btn" id="DownloadWFFree" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
                         <span>Download</span>
                         <img src="images/free.png" alt="Free Version" style="height: 25px;">
                     </a>
@@ -267,7 +276,113 @@
                             </button>
                         </div>
                     </form>
-                    <p class="signup-link">还没有账号？<a href="#">立即注册</a></p>
+                    <p class="signup-link">还没有账号？<a href="#" id="goto-register">立即注册</a></p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 注册页面 -->
+    <div id="page-register" class="page" style="display:none;">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo clickable" id="logo-to-home4">
+                    <img src="images/logo.png" alt="MooYu Logo">
+                    <span>墨鱼</span>
+                    <img src="images/MooyuB.png" alt="Mooyu" style="height: 48px;width:auto;vertical-align:middle;">
+                </div>
+            </div>
+        </header>
+        <main class="login-main">
+            <div class="login-container">
+                <div class="login-box">
+                    <h2>创建账号</h2>
+                    <p class="login-subtitle">加入墨鱼社区</p>
+                    <form class="login-form" id="register-form">
+                        <div class="form-group">
+                            <label for="register-name">姓名</label>
+                            <input type="text" id="register-name" name="name" placeholder="请输入您的姓名" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-email">邮箱</label>
+                            <input type="email" id="register-email" name="email" placeholder="请输入您的邮箱" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-password">密码</label>
+                            <input type="password" id="register-password" name="password" placeholder="请输入密码（至少6位）" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-confirm-password">确认密码</label>
+                            <input type="password" id="register-confirm-password" name="confirmPassword" placeholder="请再次输入密码" required>
+                        </div>
+                        <button type="submit" class="login-submit-btn">注册</button>
+                        <div class="login-divider">
+                            <span>或</span>
+                        </div>
+                        <div class="social-login">
+                            <button type="button" class="social-btn apple">
+                                <img src="images/apple-logo.png" alt="Apple">
+                                <span>使用 Apple 注册</span>
+                            </button>
+                            <button type="button" class="social-btn google">
+                                <img src="images/google-logo.png" alt="Google">
+                                <span>使用 Google 注册</span>
+                            </button>
+                        </div>
+                    </form>
+                    <p class="signup-link">已有账号？<a href="#" onclick="showPage('page-login')">立即登录</a></p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 管理员后台页面 -->
+    <div id="page-admin" class="page" style="display:none;">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo clickable" id="logo-to-home5">
+                    <img src="images/logo.png" alt="MooYu Logo">
+                    <span>墨鱼</span>
+                    <img src="images/MooyuB.png" alt="Mooyu" style="height: 48px;width:auto;vertical-align:middle;">
+                </div>
+                <nav>
+                    <a href="#" class="logout-btn" id="admin-logout">退出</a>
+                </nav>
+            </div>
+        </header>
+        <main class="admin-main">
+            <div class="admin-container">
+                <h2>用户管理</h2>
+                <div class="admin-stats">
+                    <div class="stat-card">
+                        <span class="stat-label">总用户数</span>
+                        <span class="stat-value" id="total-users">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">管理员数</span>
+                        <span class="stat-value" id="admin-count">0</span>
+                    </div>
+                </div>
+                <div class="admin-actions">
+                    <button id="export-users" class="admin-btn">导出用户数据</button>
+                    <button id="refresh-users" class="admin-btn">刷新列表</button>
+                </div>
+                <div class="users-table-container">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>姓名</th>
+                                <th>邮箱</th>
+                                <th>角色</th>
+                                <th>注册时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-list">
+                            <!-- 用户列表将通过JavaScript动态填充 -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </main>
