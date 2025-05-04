@@ -41,6 +41,10 @@ function showPage(pageId) {
         page.style.display = 'none';
     });
     document.getElementById(pageId).style.display = 'block';
+    
+    // 触发页面显示事件
+    const event = new Event('show');
+    document.getElementById(pageId).dispatchEvent(event);
 }
 
 // 首页 -> MooFlow页
@@ -49,12 +53,12 @@ if (gotoMooflow) {
     gotoMooflow.addEventListener('click', () => showPage('page-mooflow'));
 }
 
-// 首页Download Moo按钮 -> 下载页
+// 首页Download Moo按钮 -> 登录页
 const homeDownloadLink = document.getElementById('home-download-link');
 if (homeDownloadLink) {
     homeDownloadLink.addEventListener('click', (e) => {
         e.preventDefault();
-        showPage('page-download');
+        showPage('page-login');
     });
 }
 
@@ -83,6 +87,27 @@ if (logoToHome2) {
 const gotoMooflowFromDownload = document.getElementById('goto-mooflow-from-download');
 if (gotoMooflowFromDownload) {
     gotoMooflowFromDownload.addEventListener('click', () => showPage('page-mooflow'));
+}
+
+// 登录页logo -> 首页
+const logoToHome3 = document.getElementById('logo-to-home3');
+if (logoToHome3) {
+    logoToHome3.addEventListener('click', () => showPage('page-home'));
+}
+
+// 注册页logo -> 首页
+const logoToHome4 = document.getElementById('logo-to-home4');
+if (logoToHome4) {
+    logoToHome4.addEventListener('click', () => showPage('page-home'));
+}
+
+// 登录页 -> 注册页
+const gotoRegister = document.getElementById('goto-register');
+if (gotoRegister) {
+    gotoRegister.addEventListener('click', (e) => {
+        e.preventDefault();
+        showPage('page-register');
+    });
 }
 
 // 默认显示首页
@@ -276,4 +301,326 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 1000);
         });
     }
+}); 
+
+// 用户认证相关函数
+const API_BASE_URL = 'http://localhost:3000/api';
+
+// 显示错误消息
+function showError(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.textContent = message;
+    document.querySelector('.login-form').prepend(errorDiv);
+    setTimeout(() => errorDiv.remove(), 3000);
+}
+
+// 处理注册表单提交
+document.getElementById('register-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const name = document.getElementById('register-name').value;
+    const email = document.getElementById('register-email').value;
+    const password = document.getElementById('register-password').value;
+    const confirmPassword = document.getElementById('register-confirm-password').value;
+
+    if (password !== confirmPassword) {
+        showError('两次输入的密码不一致');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name, email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // 保存token和用户信息
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            
+            // 跳转到首页
+            showPage('page-home');
+        } else {
+            showError(data.message || '注册失败');
+        }
+    } catch (error) {
+        showError('网络错误，请稍后重试');
+    }
+});
+
+// 处理登录表单提交
+document.querySelector('#page-login .login-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // 保存token和用户信息
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            
+            // 根据用户角色跳转到不同页面
+            if (data.user.role === 'admin') {
+                showPage('page-admin');
+                await loadUsers();
+            } else {
+                showPage('page-home');
+            }
+        } else {
+            showError(data.message || '登录失败');
+        }
+    } catch (error) {
+        showError('网络错误，请稍后重试');
+    }
+});
+
+// 检查用户是否已登录
+function checkAuth() {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
+    if (token && user) {
+        // 用户已登录，可以在这里更新UI
+        const userData = JSON.parse(user);
+        console.log('用户已登录:', userData);
+    }
+}
+
+// 页面加载时检查登录状态
+document.addEventListener('DOMContentLoaded', checkAuth);
+
+// 更新登录按钮文本
+function updateLoginButton() {
+    const token = localStorage.getItem('token');
+    const loginBtn = document.querySelector('.login-btn');
+    if (loginBtn) {
+        if (token) {
+            loginBtn.textContent = '退出';
+            loginBtn.onclick = () => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                showPage('page-home');
+            };
+        } else {
+            loginBtn.textContent = '登录';
+            loginBtn.onclick = () => showPage('page-login');
+        }
+    }
+}
+
+// 监听页面切换事件
+document.addEventListener('DOMContentLoaded', () => {
+    const pages = document.querySelectorAll('.page');
+    pages.forEach(page => {
+        page.addEventListener('show', updateLoginButton);
+    });
+});
+
+// 更新用户统计
+function updateUserStats(users) {
+    const totalUsers = users.length;
+    const adminCount = users.filter(user => user.role === 'admin').length;
+    
+    document.getElementById('total-users').textContent = totalUsers;
+    document.getElementById('admin-count').textContent = adminCount;
+}
+
+// 导出用户数据为CSV
+function exportUsersToCSV(users) {
+    // CSV头部
+    const headers = ['ID', '姓名', '邮箱', '角色', '注册时间'];
+    const csvContent = [headers.join(',')];
+    
+    // 添加用户数据
+    users.forEach(user => {
+        const row = [
+            user._id,
+            user.name || '-',
+            user.email,
+            user.role,
+            new Date(user.createdAt).toLocaleString()
+        ].map(field => `"${field}"`).join(',');
+        csvContent.push(row);
+    });
+    
+    // 创建下载链接
+    const blob = new Blob([csvContent.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `users_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// 修改loadUsers函数
+async function loadUsers() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/users`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        
+        if (!response.ok) {
+            if (response.status === 401) {
+                showError('请先登录管理员账户');
+                showPage('page-login');
+                return;
+            }
+            throw new Error('获取用户列表失败');
+        }
+        
+        const users = await response.json();
+        const usersList = document.getElementById('users-list');
+        usersList.innerHTML = '';
+        
+        // 更新用户统计
+        updateUserStats(users);
+        
+        users.forEach(user => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${user._id}</td>
+                <td>${user.name || '-'}</td>
+                <td>${user.email}</td>
+                <td>${user.role}</td>
+                <td>${new Date(user.createdAt).toLocaleString()}</td>
+                <td>
+                    <button class="delete-user-btn" data-id="${user._id}">删除</button>
+                </td>
+            `;
+            usersList.appendChild(row);
+        });
+    } catch (error) {
+        showError(error.message);
+    }
+}
+
+// 添加导出按钮事件监听
+document.getElementById('export-users')?.addEventListener('click', async () => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/users`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('获取用户数据失败');
+        }
+        
+        const users = await response.json();
+        exportUsersToCSV(users);
+    } catch (error) {
+        showError(error.message);
+    }
+});
+
+// 删除用户
+async function deleteUser(userId) {
+    if (!confirm('确定要删除这个用户吗？')) return;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/users/${userId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('删除用户失败');
+        }
+        
+        await loadUsers();
+        showError('用户已删除', 'success');
+    } catch (error) {
+        showError(error.message);
+    }
+}
+
+// 管理员页面事件监听
+document.getElementById('refresh-users')?.addEventListener('click', loadUsers);
+document.getElementById('admin-logout')?.addEventListener('click', () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    showPage('page-login');
+});
+
+// 删除用户按钮事件委托
+document.getElementById('users-list')?.addEventListener('click', (e) => {
+    if (e.target.classList.contains('delete-user-btn')) {
+        deleteUser(e.target.dataset.id);
+    }
+});
+
+// 修改登录成功处理
+async function handleLoginSuccess(userData) {
+    localStorage.setItem('token', userData.token);
+    localStorage.setItem('user', JSON.stringify(userData.user));
+    updateLoginButton();
+    
+    if (userData.user.role === 'admin') {
+        showPage('page-admin');
+        await loadUsers();
+    } else {
+        showPage('page-home');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // 支持多个同名id的按钮（如介绍页和下载页）
+    const downloadWFAppleBtns = document.querySelectorAll('#DownloadWFApple');
+    downloadWFAppleBtns.forEach(downloadWFApple => {
+        downloadWFApple.addEventListener('click', function(e) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                e.preventDefault();
+                // 创建提示泡泡
+                let tip = document.createElement('div');
+                tip.className = 'login-tip-pop';
+                tip.textContent = '请先登录';
+                // 定位到按钮旁边
+                const rect = downloadWFApple.getBoundingClientRect();
+                tip.style.position = 'absolute';
+                tip.style.left = rect.left + window.scrollX + 'px';
+                tip.style.top = (rect.bottom + window.scrollY + 8) + 'px';
+                tip.style.zIndex = 9999;
+                tip.style.background = 'rgba(34,34,34,0.85)';
+                tip.style.color = '#fff';
+                tip.style.padding = '6px 16px';
+                tip.style.borderRadius = '16px';
+                tip.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+                tip.style.fontSize = '14px';
+                tip.style.pointerEvents = 'none';
+                tip.style.border = '1px solid rgba(255,255,255,0.3)';
+                document.body.appendChild(tip);
+                setTimeout(() => {
+                    tip.remove();
+                }, 2000);
+            }
+        });
+    });
 }); 
